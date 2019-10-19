@@ -1,4 +1,4 @@
-package generateforms
+package main
 
 import (
 	"bufio"
@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -115,8 +116,8 @@ func extractCompactForms(formats decimalFormatsJson) (compact.CompactForms, erro
 	}
 
 	return compact.CompactForms{
-		compact.Long:  longForms,
 		compact.Short: shortForms,
+		compact.Long:  longForms,
 	}, nil
 }
 
@@ -124,9 +125,16 @@ func extractCompactFormRules(formatRules map[string]string) ([]compact.CompactFo
 	countString := "-count-"
 	rules := make([]compact.CompactFormRule, 0, len(formatRules))
 
+	// We expect to iterate in sorted order
+	formatNames := make([]string, 0, len(formatRules))
+	for formatName := range formatRules {
+		formatNames = append(formatNames, formatName)
+	}
+	sort.Strings(formatNames)
+
 	currType := -1
 	var currRule *compact.CompactFormRule
-	for formatName, formatPattern := range formatRules {
+	for _, formatName := range formatNames {
 		countIndex := strings.Index(formatName, countString)
 		if countIndex == -1 {
 			return nil, errors.New(fmt.Sprintf("missing count from %s", formatName))
@@ -137,6 +145,7 @@ func extractCompactFormRules(formatRules map[string]string) ([]compact.CompactFo
 			return nil, err
 		}
 
+		formatPattern := formatRules[formatName]
 		zeroesCount := strings.Count(formatPattern, "0")
 		if zeroesCount == 0 {
 			return nil, errors.New(fmt.Sprintf("missing zeroes from pattern: %s", formatPattern))
@@ -154,7 +163,7 @@ func extractCompactFormRules(formatRules map[string]string) ([]compact.CompactFo
 			}
 		}
 
-		afterCountIndex := countIndex + len(countString) + 1
+		afterCountIndex := countIndex + len(countString)
 		pluralForm := formatName[afterCountIndex:]
 
 		if currRule != nil {
@@ -168,7 +177,7 @@ func extractCompactFormRules(formatRules map[string]string) ([]compact.CompactFo
 }
 
 func writeFormsFile(params generationParams) error {
-	templateFile, err := ioutil.ReadFile("./forms.tmpl")
+	templateFile, err := ioutil.ReadFile("./cmd/generateforms/forms.tmpl")
 	if err != nil {
 		return errors.New(fmt.Sprintf("error reading template file: %s", err.Error()))
 	}
@@ -178,7 +187,7 @@ func writeFormsFile(params generationParams) error {
 		return errors.New(fmt.Sprintf("error parsing template file: %s", err.Error()))
 	}
 
-	f, err := os.Create("../../compact/forms.gen.go")
+	f, err := os.Create("./compact/forms.gen.go")
 	if err != nil {
 		return errors.New(fmt.Sprintf("error parsing template file: %s", err.Error()))
 	}
@@ -191,11 +200,13 @@ func writeFormsFile(params generationParams) error {
 		return err
 	}
 
+	w.Flush()
+
 	return nil
 }
 
 func main() {
-	cldrPath := "../../cldr"
+	cldrPath := "./cldr"
 	dirs, err := ioutil.ReadDir(cldrPath)
 	if err != nil {
 		log.Fatal(err)
@@ -206,9 +217,10 @@ func main() {
 
 	for _, d := range dirs {
 		if !d.IsDir() {
-			log.Printf("skipping non-directory entry %s", d.Name())
+			log.Printf("Skipping non-directory entry %s\n", d.Name())
 			continue
 		}
+		log.Printf("Processing directory %s...\n", d.Name())
 
 		b, err := ioutil.ReadFile(fmt.Sprintf("%s/%s/numbers.json", cldrPath, d.Name()))
 		if err != nil {
