@@ -26,11 +26,24 @@ func NewFormatter(lang language.Tag, compactType CompactType) Formatter {
 }
 
 // Format takes in an integer and options and formats it according to the formatter's locale and compaction settings.
+// Note: this method truncates numbers and does not support fractions (e.g. 11.5M).
+//
 // Documented in CLDR spec: http://www.unicode.org/reports/tr35/tr35-numbers.html#Compact_Number_Formats
 func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
+	numOptions = append(numOptions, number.Scale(0))
+
 	compactForms, ok := compactFormsByLanguage[f.lang.String()]
 	if !ok {
-		return "", errors.New(fmt.Sprintf("missing compact forms for language %s", f.lang.String()))
+		// Fall back to base language
+		base, confidence := f.lang.Base()
+		if confidence == language.No {
+			return "", errors.New(fmt.Sprintf("no compact forms or fallback for language %s", f.lang.String()))
+		}
+
+		compactForms, ok = compactFormsByLanguage[base.String()]
+		if !ok {
+			return "", errors.New(fmt.Sprintf("missing compact forms for language %s and fallback %s", f.lang.String(), base))
+		}
 	}
 
 	compactForm := compactForms[f.compactType]
@@ -40,6 +53,7 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 	for _, compactFormRule := range compactForm {
 		if n >= compactFormRule.Type {
 			rule = compactFormRule
+		} else {
 			break
 		}
 	}
@@ -47,10 +61,8 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 	// N is divided by the type, after removing the number of zeros in the pattern, less 1.
 	shortN := f.shortNum(n, rule)
 
-	plurForm, err := f.pluralForm(shortN)
-	if err != nil {
-		return "", err
-	}
+	// Best effort fetching plural form
+	plurForm := f.pluralForm(shortN)
 
 	pattern, ok := rule.PatternsByPluralForm[plurForm]
 	if !ok {
@@ -75,28 +87,34 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 }
 
 // Divides number to be used in compact display according to logic in CLDR spec: http://www.unicode.org/reports/tr35/tr35-numbers.html#Compact_Number_Formats
-func (f *Formatter) shortNum(n int, rule CompactFormRule) float64 {
+func (f *Formatter) shortNum(n int, rule CompactFormRule) int {
 	typeDivisor := rule.Type
 	for i := 0; i < rule.ZeroesInPattern-1; i++ {
 		typeDivisor /= 10
 	}
-	shortN := float64(n)
+
 	if typeDivisor != 0 {
-		shortN /= float64(typeDivisor)
+		n /= typeDivisor
 	}
 
-	return shortN
+	return n
 }
 
 // Gets the pluralized form of the number, as per CLDR spec: http://cldr.unicode.org/index/cldr-spec/plural-rules
 // We use gotnospirit/makeplural for this as golang.org/x/text/plural does not expose a suitable PluralForm method.
-func (f *Formatter) pluralForm(n float64) (string, error) {
-	plurFunc, err := plural.GetFunc(f.lang.String())
-	if err != nil {
-		return "", err
+// This is a best effort function since the languages might not match up perfectly between packages.
+func (f *Formatter) pluralForm(n interface{}) string {
+	base, confidence := f.lang.Base()
+	if confidence == language.No {
+		return "other"
 	}
 
-	return plurFunc(n, false), nil
+	plurFunc, err := plural.GetFunc(base.String())
+	if err != nil {
+		return "other"
+	}
+
+	return plurFunc(n, false)
 }
 
 // Process CLDR pattern to a format suitable for use in Printer.Sprintf in golang.org/x/text/message.
