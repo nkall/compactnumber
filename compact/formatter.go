@@ -17,6 +17,11 @@ type Formatter struct {
 	compactType CompactType
 }
 
+// FormatterAPI is an interface implemented by Formatter that can be used for mocking purposes
+type FormatterAPI interface {
+	Format(n int, numOptions ...number.Option) (string, error)
+}
+
 // NewFormatter creates a new formatter based on the specified language and compaction type.
 func NewFormatter(lang language.Tag, compactType CompactType) Formatter {
 	return Formatter{
@@ -87,7 +92,7 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 }
 
 // Divides number to be used in compact display according to logic in CLDR spec: http://www.unicode.org/reports/tr35/tr35-numbers.html#Compact_Number_Formats
-func (f *Formatter) shortNum(n int, rule CompactFormRule) int {
+func (f *Formatter) shortNum(n int, rule CompactFormRule) interface{} {
 	typeDivisor := rule.Type
 	for i := 0; i < rule.ZeroesInPattern-1; i++ {
 		typeDivisor /= 10
@@ -121,9 +126,6 @@ func (f *Formatter) pluralForm(n interface{}) string {
 // Documentation for these special characters can be found in the CLDR spec: http://cldr.unicode.org/translation/number-patterns
 func formatPattern(pattern string) (string, error) {
 	// Remove special pattern symbols, as this formatting is already handled by golang.org/x/text/message
-	pattern = strings.ReplaceAll(pattern, ".", "")
-	pattern = strings.ReplaceAll(pattern, ",", "")
-	pattern = strings.ReplaceAll(pattern, "#", "")
 	pattern = strings.ReplaceAll(pattern, "'", "")
 
 	// Replace all 0s with a single %v for number formatting
