@@ -6,6 +6,10 @@ see Unicode's documentation of Compact Number Formats [here](http://www.unicode.
 This implementation should be considered best-effort. I hope to eventually add this functionality to the core
 `golang.org/x/text` repository (see [my proposal here](https://github.com/golang/go/issues/34989)).
 
+Note that the `Format` truncates the number to the nearest "whole number" on the relevant scale (1,999,999 becomes 1M),
+and fractional compact numbers (e.g. 2.5B) are currently not supported. However, it would be possible to add and
+I hope to do so at some point in the future.
+
 ## Usage
 ```
 import (
