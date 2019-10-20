@@ -1,4 +1,5 @@
-package compact
+// Package compactnumber allows for localized CLDR compact normal formatting.
+package compactnumber
 
 import (
 	"errors"
@@ -85,16 +86,17 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 		}
 	}
 
+	outPattern, err := formatPattern(pattern)
+	if err != nil {
+		return "", err
+	}
+
 	// If the value is precisely “0”, either explicit or defaulted, then the normal number format pattern for that sort of object is supplied
 	baseNumPrinter := message.NewPrinter(f.lang)
 	if pattern == "0" {
 		return baseNumPrinter.Sprintf("%v", number.Decimal(n*negativeModifier, numOptions...)), nil
 	}
 
-	outPattern, err := formatPattern(pattern)
-	if err != nil {
-		return "", err
-	}
 	return baseNumPrinter.Sprintf(outPattern, number.Decimal(shortN*int64(negativeModifier), numOptions...)), nil
 }
 
@@ -133,6 +135,14 @@ func (f *Formatter) pluralForm(n interface{}) string {
 // Process CLDR pattern to a format suitable for use in Printer.Sprintf in golang.org/x/text/message.
 // Documentation for these special characters can be found in the CLDR spec: http://cldr.unicode.org/translation/number-patterns
 func formatPattern(pattern string) (string, error) {
+	// Default to 0 (sentinel value for no pattern)
+	if pattern == "" {
+		return "0", nil
+	}
+
+	// Default to the first form if there's multiple
+	pattern = strings.Split(pattern, ";")[0]
+
 	// Remove special pattern symbols, as this formatting is already handled by golang.org/x/text/message
 	pattern = strings.ReplaceAll(pattern, "'", "")
 

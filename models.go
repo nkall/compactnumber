@@ -1,4 +1,4 @@
-package compact
+package compactnumber
 
 // CompactType is an enum used to specify compaction settings.
 type CompactType string

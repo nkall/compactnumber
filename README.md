@@ -15,13 +15,13 @@ I hope to do so at some point in the future.
 import (
 	"fmt"
 
-	"github.com/nkall/compactnumber/compact"
+	"github.com/nkall/compactnumber"
 	"golang.org/x/text/language"
 )
 
 func main() {
 	enLang := language.Make("en-US")
-	formatter := compact.NewFormatter(enLang, compact.Short)
+	formatter := compactnumber.NewFormatter(enLang, compactnumber.Short)
 	out, err := formatter.Format(17999999)
 	if err != nil {
 		panic(err)
