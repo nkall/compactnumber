@@ -29,17 +29,6 @@ type FileExtractResult struct {
 	CompactForms compact.CompactForms
 }
 
-func sanitize(input string) string {
-	var result string
-	for _, char := range input {
-		switch {
-		case char >= 'a' && char <= 'z', char >= 'A' && char <= 'Z':
-			result += string(char)
-		}
-	}
-	return result
-}
-
 func extractFromFile(b []byte) (FileExtractResult, error) {
 	var file fileJson
 	err := json.Unmarshal(b, &file)
