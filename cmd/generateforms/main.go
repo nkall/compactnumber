@@ -121,7 +121,7 @@ func extractCompactFormRules(formatRules map[string]string) ([]compact.CompactFo
 	}
 	sort.Strings(formatNames)
 
-	currType := -1
+	currType := uint64(0)
 	var currRule *compact.CompactFormRule
 	for _, formatName := range formatNames {
 		countIndex := strings.Index(formatName, countString)
@@ -129,7 +129,8 @@ func extractCompactFormRules(formatRules map[string]string) ([]compact.CompactFo
 			return nil, errors.New(fmt.Sprintf("missing count from %s", formatName))
 		}
 		typeStr := formatName[:countIndex]
-		typeNum, err := strconv.Atoi(typeStr)
+		typeNum, err := strconv.ParseUint(typeStr, 10, 0)
+
 		if err != nil {
 			return nil, err
 		}

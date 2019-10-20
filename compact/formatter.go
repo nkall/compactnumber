@@ -19,7 +19,7 @@ type Formatter struct {
 
 // FormatterAPI is an interface implemented by Formatter that can be used for mocking purposes
 type FormatterAPI interface {
-	Format(n int, numOptions ...number.Option) (string, error)
+	Format(n uint64, numOptions ...number.Option) (string, error)
 }
 
 // NewFormatter creates a new formatter based on the specified language and compaction type.
@@ -34,7 +34,7 @@ func NewFormatter(lang language.Tag, compactType CompactType) Formatter {
 // Note: this method truncates numbers and does not support fractions (e.g. 11.5M).
 //
 // Documented in CLDR spec: http://www.unicode.org/reports/tr35/tr35-numbers.html#Compact_Number_Formats
-func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
+func (f *Formatter) Format(n uint64, numOptions ...number.Option) (string, error) {
 	numOptions = append(numOptions, number.Scale(0))
 
 	compactForms, ok := compactFormsByLanguage[f.lang.String()]
@@ -92,7 +92,7 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 }
 
 // Divides number to be used in compact display according to logic in CLDR spec: http://www.unicode.org/reports/tr35/tr35-numbers.html#Compact_Number_Formats
-func (f *Formatter) shortNum(n int, rule CompactFormRule) interface{} {
+func (f *Formatter) shortNum(n uint64, rule CompactFormRule) interface{} {
 	typeDivisor := rule.Type
 	for i := 0; i < rule.ZeroesInPattern-1; i++ {
 		typeDivisor /= 10
