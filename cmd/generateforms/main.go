@@ -166,8 +166,8 @@ func extractCompactFormRules(formatRules map[string]string) ([]compact.CompactFo
 	return rules, nil
 }
 
-func writeFormsFile(params generationParams) error {
-	templateFile, err := ioutil.ReadFile("./cmd/generateforms/forms.tmpl")
+func writeFormsFile(params generationParams, inFilePath string, outFilePath string) error {
+	templateFile, err := ioutil.ReadFile(inFilePath)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error reading template file: %s", err.Error()))
 	}
@@ -177,7 +177,7 @@ func writeFormsFile(params generationParams) error {
 		return errors.New(fmt.Sprintf("error parsing template file: %s", err.Error()))
 	}
 
-	f, err := os.Create("./compact/forms.gen.go")
+	f, err := os.Create(outFilePath)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error parsing template file: %s", err.Error()))
 	}
@@ -232,12 +232,19 @@ func main() {
 
 	genParams.Timestamp = time.Now()
 
-	err = writeFormsFile(genParams)
+	err = writeFormsFile(genParams, "./cmd/generateforms/forms.tmpl", "./compact/forms.gen.go")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Println("Successfully generated compact formats file.")
+
+	err = writeFormsFile(genParams, "./cmd/generateforms/forms_test.tmpl", "./compact/forms_test.go")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Successfully generated compact formats test file.")
 }
 
 // JSON unmarshalling structs
