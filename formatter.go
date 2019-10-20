@@ -79,14 +79,12 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 
 	pattern, ok := rule.PatternsByPluralForm[plurForm]
 	if !ok {
-		// Attempt to fall back to catch-all "other" pattern first, then default to sentinel value
-		pattern, ok = rule.PatternsByPluralForm["other"]
-		if !ok {
-			pattern = "0"
-		}
+		// Attempt to fall back to catch-all "other" pattern if none for current plural form found
+		pattern = rule.PatternsByPluralForm["other"]
 	}
 
-	outPattern, err := formatPattern(pattern)
+	var err error
+	pattern, err = formatPattern(pattern)
 	if err != nil {
 		return "", err
 	}
@@ -97,7 +95,7 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 		return baseNumPrinter.Sprintf("%v", number.Decimal(n*negativeModifier, numOptions...)), nil
 	}
 
-	return baseNumPrinter.Sprintf(outPattern, number.Decimal(shortN*int64(negativeModifier), numOptions...)), nil
+	return baseNumPrinter.Sprintf(pattern, number.Decimal(shortN*int64(negativeModifier), numOptions...)), nil
 }
 
 // Divides number to be used in compact display according to logic in CLDR spec: http://www.unicode.org/reports/tr35/tr35-numbers.html#Compact_Number_Formats
