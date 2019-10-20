@@ -1,16 +1,16 @@
-package compact_test
+package compactnumber_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/nkall/compactnumber/compact"
+	"github.com/nkall/compactnumber"
 	"golang.org/x/text/language"
 )
 
 func TestFormatterFormatAmericanEnglishShort(t *testing.T) {
 	enLang := language.Make("en-US")
-	formatter := compact.NewFormatter(enLang, compact.Short)
+	formatter := compactnumber.NewFormatter(enLang, compactnumber.Short)
 
 	out, err := formatter.Format(0)
 	mustMatch(t, out, err, "0", nil)
@@ -54,7 +54,7 @@ func TestFormatterFormatAmericanEnglishShort(t *testing.T) {
 
 func TestFormatterFormatAmericanEnglishLong(t *testing.T) {
 	enLang := language.Make("en-US")
-	formatter := compact.NewFormatter(enLang, compact.Long)
+	formatter := compactnumber.NewFormatter(enLang, compactnumber.Long)
 
 	out, err := formatter.Format(0)
 	mustMatch(t, out, err, "0", nil)
@@ -77,7 +77,7 @@ func TestFormatterFormatAmericanEnglishLong(t *testing.T) {
 
 func TestFormatterFormatNorskBokmaal(t *testing.T) {
 	noLang := language.Make("nb-NO")
-	formatter := compact.NewFormatter(noLang, compact.Short)
+	formatter := compactnumber.NewFormatter(noLang, compactnumber.Short)
 
 	out, err := formatter.Format(0)
 	mustMatch(t, out, err, "0", nil)
@@ -100,7 +100,7 @@ func TestFormatterFormatNorskBokmaal(t *testing.T) {
 
 func TestFormatterFormatRussian(t *testing.T) {
 	ruLang := language.Make("ru")
-	formatter := compact.NewFormatter(ruLang, compact.Long)
+	formatter := compactnumber.NewFormatter(ruLang, compactnumber.Long)
 
 	out, err := formatter.Format(1999999999)
 	mustMatch(t, out, err, "1 миллиард", nil)
@@ -156,7 +156,7 @@ func TestFormatterFormatVariousMajorLanguages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.localeStr, func(t *testing.T) {
-			formatter := compact.NewFormatter(language.Make(tt.localeStr), compact.Short)
+			formatter := compactnumber.NewFormatter(language.Make(tt.localeStr), compactnumber.Short)
 			out, err := formatter.Format(-69540001)
 			mustMatch(t, out, err, tt.expectedOut, nil)
 		})
