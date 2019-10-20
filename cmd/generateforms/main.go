@@ -15,10 +15,11 @@ import (
 	"time"
 
 	"github.com/nkall/compactnumber"
+	"github.com/nkall/compactnumber/internal/models"
 )
 
 type generationParams struct {
-	CompactFormsByLanguage map[string]compactnumber.CompactForms
+	CompactFormsByLanguage map[string]map[compactnumber.CompactType][]models.CompactFormRule
 	Timestamp              time.Time
 	CLDRVersion            string
 }
@@ -26,7 +27,7 @@ type generationParams struct {
 type FileExtractResult struct {
 	Language     string
 	CLDRVersion  string
-	CompactForms compactnumber.CompactForms
+	CompactForms map[compactnumber.CompactType][]models.CompactFormRule
 }
 
 func extractFromFile(b []byte) (FileExtractResult, error) {
@@ -87,7 +88,7 @@ func extractFromFile(b []byte) (FileExtractResult, error) {
 	}, nil
 }
 
-func extractCompactForms(formats decimalFormatsJson) (compactnumber.CompactForms, error) {
+func extractCompactForms(formats decimalFormatsJson) (map[compactnumber.CompactType][]models.CompactFormRule, error) {
 	if len(formats.Long.DecimalFormat) == 0 {
 		return nil, errors.New("missing long formats")
 	} else if len(formats.Short.DecimalFormat) == 0 {
@@ -104,15 +105,15 @@ func extractCompactForms(formats decimalFormatsJson) (compactnumber.CompactForms
 		return nil, err
 	}
 
-	return compactnumber.CompactForms{
+	return map[compactnumber.CompactType][]models.CompactFormRule{
 		compactnumber.Short: shortForms,
 		compactnumber.Long:  longForms,
 	}, nil
 }
 
-func extractCompactFormRules(formatRules map[string]string) ([]compactnumber.CompactFormRule, error) {
+func extractCompactFormRules(formatRules map[string]string) ([]models.CompactFormRule, error) {
 	countString := "-count-"
-	rules := make([]compactnumber.CompactFormRule, 0, len(formatRules))
+	rules := make([]models.CompactFormRule, 0, len(formatRules))
 
 	// We expect to iterate in sorted order
 	formatNames := make([]string, 0, len(formatRules))
@@ -122,7 +123,7 @@ func extractCompactFormRules(formatRules map[string]string) ([]compactnumber.Com
 	sort.Strings(formatNames)
 
 	currType := int64(-1)
-	var currRule *compactnumber.CompactFormRule
+	var currRule *models.CompactFormRule
 	for _, formatName := range formatNames {
 		countIndex := strings.Index(formatName, countString)
 		if countIndex == -1 {
@@ -146,7 +147,7 @@ func extractCompactFormRules(formatRules map[string]string) ([]compactnumber.Com
 				rules = append(rules, *currRule)
 			}
 			currType = typeNum
-			currRule = &compactnumber.CompactFormRule{
+			currRule = &models.CompactFormRule{
 				Type:                 typeNum,
 				ZeroesInPattern:      zeroesCount,
 				PatternsByPluralForm: make(map[string]string),
@@ -203,7 +204,7 @@ func main() {
 	}
 
 	var genParams generationParams
-	genParams.CompactFormsByLanguage = make(map[string]compactnumber.CompactForms)
+	genParams.CompactFormsByLanguage = make(map[string]map[compactnumber.CompactType][]models.CompactFormRule)
 
 	for _, d := range dirs {
 		if !d.IsDir() {

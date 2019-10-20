@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/gotnospirit/makeplural/plural"
+	"github.com/nkall/compactnumber/internal/models"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 	"golang.org/x/text/number"
@@ -62,7 +63,7 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 	}
 
 	// To format a number N, the greatest type less than or equal to N is used, with the appropriate plural category.
-	var rule CompactFormRule
+	var rule models.CompactFormRule
 	for _, compactFormRule := range compactForm {
 		if int64(n) >= compactFormRule.Type {
 			rule = compactFormRule
@@ -99,7 +100,7 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 }
 
 // Divides number to be used in compact display according to logic in CLDR spec: http://www.unicode.org/reports/tr35/tr35-numbers.html#Compact_Number_Formats
-func (f *Formatter) shortNum(n int, rule CompactFormRule) int64 {
+func (f *Formatter) shortNum(n int, rule models.CompactFormRule) int64 {
 	typeDivisor := rule.Type
 	for i := 0; i < rule.ZeroesInPattern-1; i++ {
 		typeDivisor /= 10
