@@ -1,4 +1,4 @@
-// Package compactnumber allows for localized CLDR compact normal formatting.
+// Package compactnumber allows for localized CLDR compact number formatting.
 package compactnumber
 
 import (
