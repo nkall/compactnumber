@@ -223,6 +223,11 @@ func main() {
 		}
 		genParams.CLDRVersion = forms.CLDRVersion
 		genParams.CompactFormsByLanguage[forms.Language] = forms.CompactForms
+
+		// Special case -- nb (Norsk Bokmål) is sometimes classified as no (Norsk)
+		if forms.Language == "nb" {
+			genParams.CompactFormsByLanguage["no"] = forms.CompactForms
+		}
 	}
 
 	genParams.Timestamp = time.Now()

@@ -53,6 +53,13 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 
 	compactForm := compactForms[f.compactType]
 
+	// Apply negative modifier at the end if dealing with negative number
+	negativeModifier := 1
+	if n < 0 {
+		negativeModifier = -1
+		n *= -1
+	}
+
 	// To format a number N, the greatest type less than or equal to N is used, with the appropriate plural category.
 	var rule CompactFormRule
 	for _, compactFormRule := range compactForm {
@@ -81,18 +88,18 @@ func (f *Formatter) Format(n int, numOptions ...number.Option) (string, error) {
 	// If the value is precisely “0”, either explicit or defaulted, then the normal number format pattern for that sort of object is supplied
 	baseNumPrinter := message.NewPrinter(f.lang)
 	if pattern == "0" {
-		return baseNumPrinter.Sprintf("%v", number.Decimal(n, numOptions...)), nil
+		return baseNumPrinter.Sprintf("%v", number.Decimal(n*negativeModifier, numOptions...)), nil
 	}
 
 	outPattern, err := formatPattern(pattern)
 	if err != nil {
 		return "", err
 	}
-	return baseNumPrinter.Sprintf(outPattern, number.Decimal(shortN, numOptions...)), nil
+	return baseNumPrinter.Sprintf(outPattern, number.Decimal(shortN*int64(negativeModifier), numOptions...)), nil
 }
 
 // Divides number to be used in compact display according to logic in CLDR spec: http://www.unicode.org/reports/tr35/tr35-numbers.html#Compact_Number_Formats
-func (f *Formatter) shortNum(n int, rule CompactFormRule) interface{} {
+func (f *Formatter) shortNum(n int, rule CompactFormRule) int64 {
 	typeDivisor := rule.Type
 	for i := 0; i < rule.ZeroesInPattern-1; i++ {
 		typeDivisor /= 10
@@ -138,6 +145,11 @@ func formatPattern(pattern string) (string, error) {
 	pattern = strings.ReplaceAll(pattern, "0", "")
 	patternRunes := []rune(pattern)
 
-	pattern = fmt.Sprintf("%s%s%s", string(patternRunes[:zeroIndex]), "%v", string(patternRunes[zeroIndex:]))
+	endStr := ""
+	if zeroIndex < len(patternRunes) {
+		endStr = string(patternRunes[zeroIndex:])
+	}
+
+	pattern = fmt.Sprintf("%s%s%s", string(patternRunes[:zeroIndex]), "%v", endStr)
 	return pattern, nil
 }
