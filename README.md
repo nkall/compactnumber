@@ -16,12 +16,10 @@ import (
 	"fmt"
 
 	"github.com/nkall/compactnumber"
-	"golang.org/x/text/language"
 )
 
 func main() {
-	enLang := language.Make("en-US")
-	formatter := compactnumber.NewFormatter(enLang, compactnumber.Short)
+	formatter := compactnumber.NewFormatter("en-US", compactnumber.Short)
 	out, err := formatter.Format(17999999)
 	if err != nil {
 		panic(err)
