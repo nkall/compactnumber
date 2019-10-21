@@ -25,9 +25,9 @@ type FormatterAPI interface {
 }
 
 // NewFormatter creates a new formatter based on the specified language and compaction type.
-func NewFormatter(lang language.Tag, compactType CompactType) Formatter {
+func NewFormatter(lang string, compactType CompactType) Formatter {
 	return Formatter{
-		lang:        lang,
+		lang:        language.Make(lang),
 		compactType: compactType,
 	}
 }
@@ -143,7 +143,7 @@ func formatPattern(pattern string) (string, error) {
 	pattern = strings.Split(pattern, ";")[0]
 
 	// Remove special pattern symbols, as this formatting is already handled by golang.org/x/text/message
-	pattern = strings.ReplaceAll(pattern, "'", "")
+	pattern = strings.Replace(pattern, "'", "", -1)
 
 	// Replace all 0s with a single %v for number formatting
 	zeroIndex := strings.IndexRune(pattern, '0')
@@ -151,7 +151,7 @@ func formatPattern(pattern string) (string, error) {
 		return "", errors.New(fmt.Sprintf("invalid pattern (no digit pattern characters): %s", pattern))
 	}
 
-	pattern = strings.ReplaceAll(pattern, "0", "")
+	pattern = strings.Replace(pattern, "0", "", -1)
 	patternRunes := []rune(pattern)
 
 	endStr := ""

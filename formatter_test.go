@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	"github.com/nkall/compactnumber"
-	"golang.org/x/text/language"
 )
 
 func TestFormatterFormatAmericanEnglishShort(t *testing.T) {
-	enLang := language.Make("en-US")
-	formatter := compactnumber.NewFormatter(enLang, compactnumber.Short)
+	formatter := compactnumber.NewFormatter("en-US", compactnumber.Short)
 
 	out, err := formatter.Format(0)
 	mustMatch(t, out, err, "0", nil)
@@ -53,8 +51,7 @@ func TestFormatterFormatAmericanEnglishShort(t *testing.T) {
 }
 
 func TestFormatterFormatAmericanEnglishLong(t *testing.T) {
-	enLang := language.Make("en-US")
-	formatter := compactnumber.NewFormatter(enLang, compactnumber.Long)
+	formatter := compactnumber.NewFormatter("en-US", compactnumber.Long)
 
 	out, err := formatter.Format(0)
 	mustMatch(t, out, err, "0", nil)
@@ -76,8 +73,7 @@ func TestFormatterFormatAmericanEnglishLong(t *testing.T) {
 }
 
 func TestFormatterFormatNorskBokmaal(t *testing.T) {
-	noLang := language.Make("nb-NO")
-	formatter := compactnumber.NewFormatter(noLang, compactnumber.Short)
+	formatter := compactnumber.NewFormatter("nb-NO", compactnumber.Short)
 
 	out, err := formatter.Format(0)
 	mustMatch(t, out, err, "0", nil)
@@ -99,8 +95,7 @@ func TestFormatterFormatNorskBokmaal(t *testing.T) {
 }
 
 func TestFormatterFormatRussian(t *testing.T) {
-	ruLang := language.Make("ru")
-	formatter := compactnumber.NewFormatter(ruLang, compactnumber.Long)
+	formatter := compactnumber.NewFormatter("ru", compactnumber.Long)
 
 	out, err := formatter.Format(1999999999)
 	mustMatch(t, out, err, "1 миллиард", nil)
@@ -156,7 +151,7 @@ func TestFormatterFormatVariousMajorLanguages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.localeStr, func(t *testing.T) {
-			formatter := compactnumber.NewFormatter(language.Make(tt.localeStr), compactnumber.Short)
+			formatter := compactnumber.NewFormatter(tt.localeStr, compactnumber.Short)
 			out, err := formatter.Format(-69540001)
 			mustMatch(t, out, err, tt.expectedOut, nil)
 		})
