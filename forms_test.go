@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/nkall/compactnumber"
-	"golang.org/x/text/language"
 )
 
 func TestAllCompactFormsByLanguage(t *testing.T) {
@@ -379,7 +378,7 @@ func TestAllCompactFormsByLanguage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.localeStr, func(t *testing.T) {
-			formatter := compactnumber.NewFormatter(language.Make(tt.localeStr), compactnumber.Short)
+			formatter := compactnumber.NewFormatter(tt.localeStr, compactnumber.Short)
 			out, err := formatter.Format(9493310609)
 			if err != nil {
 				t.Error(fmt.Sprintf("got unexpected error %v", err))
@@ -388,7 +387,7 @@ func TestAllCompactFormsByLanguage(t *testing.T) {
 				t.Error("got empty output")
 			}
 
-			formatter = compactnumber.NewFormatter(language.Make(tt.localeStr), compactnumber.Long)
+			formatter = compactnumber.NewFormatter(tt.localeStr, compactnumber.Long)
 			out, err = formatter.Format(8675309)
 			if err != nil {
 				t.Error(fmt.Sprintf("got unexpected error %v", err))
